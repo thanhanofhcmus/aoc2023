@@ -36,7 +36,7 @@ impl Game {
 fn main() {
     let input = std::fs::read_to_string("./input.txt").unwrap();
 
-    let result = part_1(&input);
+    let result = part_2(&input);
 
     println!("{result}");
 }
@@ -52,6 +52,14 @@ fn part_1(input: &str) -> usize {
                 None
             }
         })
+        .sum()
+}
+
+fn part_2(input: &str) -> usize {
+    input
+        .lines()
+        .filter_map(parse_game)
+        .map(|g| g.bag.red * g.bag.blue * g.bag.green)
         .sum()
 }
 
