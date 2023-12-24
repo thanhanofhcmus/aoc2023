@@ -1,10 +1,16 @@
+#![allow(dead_code)]
+
 fn main() -> std::io::Result<()> {
     let s = std::fs::read_to_string("./input.txt")?;
 
-    let lines = s.trim().lines().collect::<Vec<&str>>();
+    println!("{:?}", part_2(&s));
 
-    let r = lines
-        .into_iter()
+    Ok(())
+}
+
+fn part_1(s: &String) -> Option<usize> {
+    s.trim()
+        .lines()
         .map(|s| {
             (
                 find_ascii_digit(s, str::find),
@@ -12,11 +18,20 @@ fn main() -> std::io::Result<()> {
             )
         })
         .map(|(l, r)| Some(l? * 10 + r?))
-        .fold(Some(0), |acc, n| Some(acc? + n?));
+        .fold(Some(0), |acc, n| Some(acc? + n?))
+}
 
-    println!("{:?}", r);
-
-    Ok(())
+fn part_2(s: &String) -> Option<usize> {
+    s.trim()
+        .lines()
+        // .take(10)
+        // .map(|s| {
+        //     let v = get_value(s);
+        //     println!("{} {:?}", s, &v);
+        //     v
+        // })
+        .map(get_value)
+        .fold(Some(0), |acc, n| Some(acc? + n?))
 }
 
 fn find_ascii_digit<'a, F>(s: &'a str, func: F) -> Option<usize>
@@ -26,4 +41,29 @@ where
     func(s, |c: char| c.is_ascii_digit())
         .and_then(|i| s.chars().nth(i))
         .map(|v| ((v as u8) - b'0') as usize)
+}
+
+fn get_value(s: &str) -> Option<usize> {
+    let convert = |cap: regex::Captures<'_>| match *cap.extract::<1>().1.get(0)? {
+        "eno" | "one" | "1" => Some(1),
+        "owt" | "two" | "2" => Some(2),
+        "eerht" | "three" | "3" => Some(3),
+        "ruof" | "four" | "4" => Some(4),
+        "evif" | "five" | "5" => Some(5),
+        "xis" | "six" | "6" => Some(6),
+        "neves" | "seven" | "7" => Some(7),
+        "thgie" | "eight" | "8" => Some(8),
+        "enin" | "nine" | "9" => Some(9),
+        _ => return None,
+    };
+    let re = regex::Regex::new(r"(one|two|three|four|five|six|seven|eight|nine|[0-9])").unwrap();
+    let rev_re =
+        regex::Regex::new(r"(eno|owt|eerht|ruof|evif|xis|neves|thgie|enin|[0-9])").unwrap();
+
+    let rev_s = s.chars().rev().collect::<String>();
+
+    let l = convert(re.captures(s)?);
+    let r = convert(rev_re.captures(&rev_s)?);
+
+    Some(l? * 10 + r?)
 }
