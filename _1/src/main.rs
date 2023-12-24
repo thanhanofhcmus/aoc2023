@@ -8,7 +8,7 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-fn part_1(s: &String) -> Option<usize> {
+fn part_1(s: &str) -> Option<usize> {
     s.trim()
         .lines()
         .map(|s| {
@@ -18,10 +18,10 @@ fn part_1(s: &String) -> Option<usize> {
             )
         })
         .map(|(l, r)| Some(l? * 10 + r?))
-        .fold(Some(0), |acc, n| Some(acc? + n?))
+        .try_fold(0, |acc, n| Some(acc + n?))
 }
 
-fn part_2(s: &String) -> Option<usize> {
+fn part_2(s: &str) -> Option<usize> {
     s.trim()
         .lines()
         // .take(10)
@@ -31,7 +31,7 @@ fn part_2(s: &String) -> Option<usize> {
         //     v
         // })
         .map(get_value)
-        .fold(Some(0), |acc, n| Some(acc? + n?))
+        .try_fold(0, |acc, n| Some(acc + n?))
 }
 
 fn find_ascii_digit<'a, F>(s: &'a str, func: F) -> Option<usize>
@@ -44,7 +44,7 @@ where
 }
 
 fn get_value(s: &str) -> Option<usize> {
-    let convert = |cap: regex::Captures<'_>| match *cap.extract::<1>().1.get(0)? {
+    let convert = |cap: regex::Captures<'_>| match *cap.extract::<1>().1.first()? {
         "eno" | "one" | "1" => Some(1),
         "owt" | "two" | "2" => Some(2),
         "eerht" | "three" | "3" => Some(3),
@@ -54,7 +54,7 @@ fn get_value(s: &str) -> Option<usize> {
         "neves" | "seven" | "7" => Some(7),
         "thgie" | "eight" | "8" => Some(8),
         "enin" | "nine" | "9" => Some(9),
-        _ => return None,
+        _ => None,
     };
     let re = regex::Regex::new(r"(one|two|three|four|five|six|seven|eight|nine|[0-9])").unwrap();
     let rev_re =
