@@ -24,12 +24,12 @@ impl RangeMapping {
     }
 
     fn bounds(&self) -> Vec<usize> {
-        return vec![
+        vec![
             self.source,
             self.source + self.range - 1,
             self.destination,
             self.destination + self.range - 1,
-        ];
+        ]
     }
 }
 
@@ -59,8 +59,7 @@ impl LineMapping {
     fn bounds(&self) -> Vec<usize> {
         self.range_mappings
             .iter()
-            .map(|rm| rm.bounds())
-            .flatten()
+            .flat_map(|rm| rm.bounds())
             .collect()
     }
 }
@@ -74,6 +73,7 @@ impl PlaneMapping {
         self.line_mappings.iter().fold(n, |acc, lm| lm.forward(acc))
     }
 
+    #[allow(dead_code)]
     fn backward(&self, n: usize) -> usize {
         self.line_mappings
             .iter()
@@ -84,18 +84,13 @@ impl PlaneMapping {
         let mut sb: HashSet<usize> = HashSet::new();
 
         for (i, lm) in self.line_mappings.iter().enumerate() {
-            let bounds = lm
-                .bounds()
-                .into_iter()
-                .map(|b| {
-                    self.line_mappings[0..i]
-                        .iter()
-                        .rev()
-                        .fold(b, |acc, lm| lm.backward(acc))
-                })
-                .collect::<HashSet<usize>>();
-
-            sb = &sb | &bounds;
+            let it = lm.bounds().into_iter().map(|b| {
+                self.line_mappings[0..i]
+                    .iter()
+                    .rev()
+                    .fold(b, |acc, lm| lm.backward(acc))
+            });
+            sb.extend(it);
         }
 
         sb.into_iter().collect()
@@ -109,7 +104,7 @@ fn read_input(path: &str) -> Result<(Vec<usize>, PlaneMapping), &str> {
         .ok_or("error splitting seed and mapping")?;
 
     let seeds = seeds_input
-        .split_once(":")
+        .split_once(':')
         .ok_or("parse seed: can not split ':'")?
         .1
         .split_whitespace()
@@ -150,6 +145,7 @@ fn read_input(path: &str) -> Result<(Vec<usize>, PlaneMapping), &str> {
     Ok((seeds, plane_mapping))
 }
 
+#[allow(dead_code)]
 fn part_1(path: &str) -> Result<usize, &str> {
     let (seeds, plane_mapping) = read_input(path)?;
     seeds
@@ -159,6 +155,7 @@ fn part_1(path: &str) -> Result<usize, &str> {
         .ok_or("error getting min after mapping")
 }
 
+#[allow(dead_code)]
 fn part_2(path: &str) -> Result<usize, &str> {
     let (seeds, plane_mapping) = read_input(path)?;
     let ranges = seeds
@@ -178,10 +175,7 @@ fn part_2(path: &str) -> Result<usize, &str> {
     // dbg!(ranges.clone());
     // dbg!(candidates.clone());
 
-    candidates = candidates
-        .into_iter()
-        .filter(|c| ranges.iter().any(|r| r.contains(&c)))
-        .collect();
+    candidates.retain(|c| ranges.iter().any(|r| r.contains(c)));
 
     // dbg!(candidates.clone());
 
@@ -193,7 +187,7 @@ fn part_2(path: &str) -> Result<usize, &str> {
 }
 
 fn main() {
-    dbg!(part_2("./input.txt"));
+    println!("{:?}", part_2("./input.txt"));
 }
 
 #[cfg(test)]
